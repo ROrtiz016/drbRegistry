@@ -1,0 +1,1128 @@
+<form id="SearchFilterForm">
+    <div class="row">
+        <div class="col-md-3 col-1 search-filter-container hidden">
+            <label for="NetworkFilter">Network</label>
+            <select id="NetworkFilter" title="Select an option..."></select>
+        </div>
+        <div class="col-md-3 col-1 search-filter-container hidden">
+            <label for="ServiceTypeFilter">Service Type</label>
+            <select id="ServiceTypeFilter" title="Select an option..."></select>
+        </div>
+        <div class="col-md-3 col-1 search-filter-container hidden">
+            <label for="NetworkOptionsFilter">Network Options</label>
+            <select id="NetworkOptionsFilter" title="Select an option...">
+                <option hidden disabled selected></option>
+                <option>All</option>
+                <option id="ProgramsOfExcellenceOption">Programs of Excellence</option>
+                <optgroup id="ProgramsOfExcellenceOptgroup" label="Programs of Excellence">
+                    <option>PerformanceQUALITY</option>
+                    <option>PerformanceSELECT</option>
+                    <option>PerformanceELITE</option>
+                </optgroup>
+                <option>Member's Choice</option>
+                <option>Government Rates</option>
+            </select>
+        </div>
+        <div class="col-md-3 col-1 search-filter-container hidden">
+            <label for="AgeFilter">Age</label>
+            <select id="AgeFilter" title="Select an option...">
+                <option hidden disabled selected></option>
+                <option>Adult</option>
+                <option>Pediatric</option>
+            </select>
+        </div>
+        <div class="col-md-3 col-1 search-filter-container hidden">
+            <label for="StateFilter">States</label>
+            <select id="StateFilter" multiple title="Select an option...">
+                <option value="All" selected="selected">All</option>
+                <option value="AL">Alabama</option>
+                <option value="AK">Alaska</option>
+                <option value="AZ">Arizona</option>
+                <option value="AR">Arkansas</option>
+                <option value="CA">California</option>
+                <option value="CO">Colorado</option>
+                <option value="CT">Connecticut</option>
+                <option value="DE">Delaware</option>
+                <option value="DC">District Of Columbia</option>
+                <option value="FL">Florida</option>
+                <option value="GA">Georgia</option>
+                <option value="HI">Hawaii</option>
+                <option value="ID">Idaho</option>
+                <option value="IL">Illinois</option>
+                <option value="IN">Indiana</option>
+                <option value="IA">Iowa</option>
+                <option value="KS">Kansas</option>
+                <option value="KY">Kentucky</option>
+                <option value="LA">Louisiana</option>
+                <option value="ME">Maine</option>
+                <option value="MD">Maryland</option>
+                <option value="MA">Massachusetts</option>
+                <option value="MI">Michigan</option>
+                <option value="MN">Minnesota</option>
+                <option value="MS">Mississippi</option>
+                <option value="MO">Missouri</option>
+                <option value="MT">Montana</option>
+                <option value="NE">Nebraska</option>
+                <option value="NV">Nevada</option>
+                <option value="NH">New Hampshire</option>
+                <option value="NJ">New Jersey</option>
+                <option value="NM">New Mexico</option>
+                <option value="NY">New York</option>
+                <option value="NC">North Carolina</option>
+                <option value="ND">North Dakota</option>
+                <option value="OH">Ohio</option>
+                <option value="OK">Oklahoma</option>
+                <option value="OR">Oregon</option>
+                <option value="PA">Pennsylvania</option>
+                <option value="RI">Rhode Island</option>
+                <option value="SC">South Carolina</option>
+                <option value="SD">South Dakota</option>
+                <option value="TN">Tennessee</option>
+                <option value="TX">Texas</option>
+                <option value="UT">Utah</option>
+                <option value="VT">Vermont</option>
+                <option value="VA">Virginia</option>
+                <option value="WA">Washington</option>
+                <option value="WV">West Virginia</option>
+                <option value="WI">Wisconsin</option>
+                <option value="WY">Wyoming</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row" id="search-controls">
+        <div class="col-12">
+            <button type="submit" class="btn" disabled>Search</button>
+            <button type="button" class="btn hidden">Clear filters</button>
+        </div>
+    </div>
+</form>
+
+<div id="google-map" class="hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/js/bootstrap-select.min.js"></script>
+
+<script>var $ = jQuery;
+
+    var searchResultsTable;
+
+    try {
+        $.fn.selectpicker.Constructor.BootstrapVersion = '3';
+    }
+    catch { }
+
+    var tableLoaded = false;
+    var mapsLoaded = false;
+
+    function prepareFilters() {
+        if (!tableLoaded || !mapsLoaded) return;
+
+        // THIS IS NOT THE ONLY PLACE THAT YOU CAN FIND THIS KEY. Replace it everywhere you can find this string (such as the script src at the bottom of this snippet)
+        var googleApiKey = 'AIzaSyDuLe4Sq9vTpTxUJ-Vati-KYu-26m3XW0M';
+
+        setTimeout(function () {
+            var isLoggedInSpan = document.getElementById('IsLoggedIn');
+            var isLoggedIn = isLoggedInSpan && isLoggedInSpan.innerText == 'true';
+            var searchResultsFiltering = searchResultsTable.use(FooTable.Filtering);
+
+            var options = {
+                'Transplant': {
+                    serviceType: [
+                        'Allogenic-Related',
+                        'Allogenic-Unrelated',
+                        'Autologous BMT',
+                        'Cord Blood',
+                        'Heart',
+                        'Intestine/Multi Visceral',
+                        'Islet-Allogenic',
+                        'Islet-Autologous',
+                        'Kidney',
+                        'Liver',
+                        'Lung',
+                        'Multi Organ',
+                        'Pancreas',
+                        function transplantServiceTypeEventHandler(event) {
+                            showFilter(ageFilter);
+                            showFilter(networkOptionsFilter);
+                            showFilter(stateFilter);
+
+                            serviceTypeFilter.selectpicker('refresh');
+                        },
+                    ],
+                    // ?
+                },
+                'Destination VAD': {
+                    serviceType: [
+                        'VAD Implantation',
+                        'VAD Maintenance',
+                        function bariatricServiceTypeEventHandler(event) {
+                            showFilter(stateFilter);
+                            serviceTypeFilter.selectpicker('refresh');
+                        },
+                    ],
+                },
+                'Congenital Heart Defect': {
+                    states: true,
+                },
+                'Cellular Immunotherapy': {
+                    serviceType: [
+                        'All',
+                        'Car T-cell therapy',
+                        function cellularImmunotherapyServiceTypeEventHandler(event) {
+                            var selectedOption = event.target.value;
+
+                            if (selectedOption == 'Car T-cell therapy') {
+                                showFilter(stateFilter);
+                            }
+                            else {
+                                hideFilter(stateFilter);
+                            }
+
+                            serviceTypeFilter.selectpicker('refresh');
+                        },
+                    ],
+                },
+                'Cancer': {
+                    states: true,
+                },
+                'Bariatric': {
+                    serviceType: [
+                        'Gastric Banding',
+                        'Gastric Bypass',
+                        'Gastric Sleeve',
+                        'Duodenal Switch',
+                        function bariatricServiceTypeEventHandler(event) {
+                            showFilter(stateFilter);
+                            serviceTypeFilter.selectpicker('refresh');
+                        },
+                    ],
+                },
+                'Proton Therapy': {
+                    states: true,
+                },
+            };
+
+            var searchFilterForm = $('#SearchFilterForm');
+            var networkFilter = $('#NetworkFilter');
+            var serviceTypeFilter = $('#ServiceTypeFilter');
+            var networkOptionsFilter = $('#NetworkOptionsFilter');
+            var programsOfExcellenceOption = $('#ProgramsOfExcellenceOption');
+            var programsOfExcellenceOptgroup = $('#ProgramsOfExcellenceOptgroup');
+            var ageFilter = $('#AgeFilter');
+            var stateFilter = $('#StateFilter');
+            var filterAndResults = $('#table-and-filter');
+            var searchResultsTableElement = $('#search-results-table');
+            var loadingIndicatorContainer = $('#search-loading-indicator');
+            var searchButton = $('#search-controls [type="submit"]');
+            var clearFilterButton = $('#search-controls [type="button"]');
+            var visibleFilters = [ networkFilter ];
+            var appliedFilters = [];
+            var visibleRowData = [];
+
+            // Google Map object
+            var map;
+            var mapElement = $('#google-map');
+            var markers = [];
+            var locationCoordsMap = {};
+            var currentlyShownPopup;
+
+            searchFilterForm.on('submit', function onSearchFilterSubmit(event) {
+                event.preventDefault();
+
+                showSearchResults();
+            });
+
+            clearFilterButton.on('click', function onClearFilterClick() {
+                clearAllFilters();
+                clearResultTableFilters();
+                allFilterChangeHandler();
+                clearFilterButton.addClass('hidden');
+            });
+
+            networkFilter.hide();
+            serviceTypeFilter.hide();
+            networkOptionsFilter.hide();
+            ageFilter.hide();
+            stateFilter.hide();
+
+            networkFilter.on('change', allFilterChangeHandler);
+            serviceTypeFilter.on('change', allFilterChangeHandler);
+            networkOptionsFilter.on('change', allFilterChangeHandler);
+            ageFilter.on('change', allFilterChangeHandler);
+            stateFilter.on('change', allFilterChangeHandler);
+
+            if (!isLoggedIn) {
+                programsOfExcellenceOptgroup.remove();
+            }
+            else {
+                programsOfExcellenceOption.remove();
+            }
+
+            networkFilter.selectpicker();
+            serviceTypeFilter.selectpicker();
+            networkOptionsFilter.selectpicker();
+            ageFilter.selectpicker();
+            stateFilter.selectpicker();
+
+            hideAllFilters();
+
+            filterAndResults.removeClass('hidden');
+            loadingIndicatorContainer.addClass('hidden');
+
+            networkFilter.on('change', handleNetworkChange);
+            stateFilter.on('change', stateFilterChangeHandler);
+
+            resetOptions(networkFilter, Object.keys(options))
+
+            networkFilter.parents('.search-filter-container').removeClass('hidden');
+
+            searchResultsTable.$el.on('after.ft.filtering', function onSearchResultsFiltered(event, tableInstance, filters) {
+                markers.forEach(function removeMarker(marker) {
+                    marker.setMap(null);
+                    marker.__CLOSE_POPUP();
+                });
+
+                markers = [];
+
+                if (!filters.length) {
+                    mapElement.addClass('hidden');
+                    return;
+                }
+
+                visibleRowData = searchResultsTable.rows.all
+                    .filter(function doesRowMatchFilter(row) {
+                        if (!row.value.city || !row.value.state) {
+                            return false;
+                        }
+                        return filters.filter(function doesRowNotMatchFilter(filter) {
+                            return !filter.matchRow(row);
+                        }).length == 0;
+                    })
+                    .map(function mapFtRowToData(row) {
+                        return row.value;
+                    });
+
+                var markerLocations = {};
+
+                visibleRowData.forEach(function forEachVisibleRowData(facility) {
+                    var locationString = getLocationString(facility);
+
+                    if (!(locationString in markerLocations)) {
+                        markerLocations[locationString] = [];
+                    }
+
+                    markerLocations[locationString].push(facility);
+                });
+
+                markers = Object.keys(markerLocations)
+                    .map(function mapRowDataToMarkers(key) {
+                        var position = locationCoordsMap[key];
+
+                        var popup = createFacilityMapPopup(key, markerLocations[key], position);
+
+                        var marker = new google.maps.Marker({
+                            position: position,
+                            map: map,
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                fillColor: '#a2ca4f',
+                                fillOpacity: 1,
+                                strokeOpacity: 0,
+                                strokeWeight: 1,
+                                scale: 7,
+                            },
+                        });
+
+                        marker.__CLOSE_POPUP = hidePopup;
+
+                        var showPopup = false;
+
+                        popup.addListener('mouseenter', function onMouseEnterPopup(event) {
+                            showPopup = true;
+                        });
+
+                        popup.addListener('mouseleave', function onMouseLeavePopup(event) {
+                            showPopup = false;
+
+                            // allow the "showPopup" to be set to "true" when hovering over the marker before closing the popup
+                            setTimeout(function () {
+                                if (!showPopup) {
+                                    hidePopup();
+                                }
+                            }, 0);
+                        });
+
+                        marker.addListener('mouseover', function onMouseOverMarker(event) {
+                            if (currentlyShownPopup == popup) return;
+
+                            if (currentlyShownPopup && currentlyShownPopup != popup) {
+                                popup.hide();
+                            }
+
+                            currentlyShownPopup = popup;
+
+                            showPopup = true;
+
+                            revealPopup();
+                        });
+
+                        marker.addListener('mouseout', function onMouseOutMarker(event) {
+                            showPopup = false;
+
+                            // allow the "showPopup" to be set to "true" when hovering over popup before closing the popup
+                            setTimeout(function () {
+                                if (!showPopup) {
+                                    hidePopup();
+                                }
+                            }, 0);
+                        });
+
+                        function revealPopup() {
+                            popup.setMap(map);
+
+                            setTimeout(function () {
+                                $(popup.containerDiv).find('.popup-bubble').on('mouseenter', function onMouseEnterPopup(event) {
+                                    showPopup = true;
+                                });
+
+                                $(popup.containerDiv).find('.popup-bubble').on('mouseleave', function onMouseLeavePopup(event) {
+                                    showPopup = false;
+
+                                    // allow the "showPopup" to be set to "true" when hovering over the marker, etc., before closing the popup
+                                    setTimeout(function () {
+                                        if (!showPopup) {
+                                            hidePopup();
+                                        }
+                                    }, 0);
+                                });
+                            }, 0);
+                        }
+
+                        function hidePopup() {
+                            popup.hide();
+
+                            if (currentlyShownPopup == popup) {
+                                currentlyShownPopup = null;
+                            }
+                        }
+
+                        return marker;
+                    });
+            });
+
+            populateLocationMap();
+
+            function resetOptions(select, stringOptions) {
+                var optionString = '<option hidden disabled selected></option>';
+                optionString += stringOptions
+                    .map(function mapStringOptions(key) {
+                        return '<option>' + (typeof key == 'string' ? key : key.name) + '</option>';
+                    })
+                    .join('\n');
+                select[0].innerHTML = optionString;
+
+                select.selectpicker('refresh');
+            }
+
+            function handleNetworkChange(event) {
+                var selectedValue = event.target.value;
+
+                hideAllFilters();
+
+                var selectedConfig = options[selectedValue];
+
+                if ('serviceType' in selectedConfig) {
+                    showFilter(serviceTypeFilter);
+
+                    var serviceTypeHandler = selectedConfig.serviceType
+                        .reduce(function serviceTypeReduce(result, item) {
+                            if (typeof item == 'function') {
+                                return item;
+                            }
+
+                            return result;
+                        }, null);
+
+                    if (serviceTypeHandler) {
+                        serviceTypeFilter.on('change', serviceTypeHandler);
+                    }
+
+                    resetOptions(serviceTypeFilter, selectedConfig.serviceType.filter(function serviceTypeFilterFn(item) { return typeof item != 'function'; }));
+                }
+                else if ('states' in selectedConfig) {
+                    showFilter(stateFilter);
+                }
+            }
+
+            function allFilterChangeHandler() {
+                setTimeout(function () {
+                    var emptyFilters = visibleFilters.filter(function visibleFiltersFilterFn(filter) {
+                        return !filter.selectpicker('val');
+                    });
+
+                    if (emptyFilters.length) {
+                        searchButton.attr('disabled', 'disabled');
+                        searchButton.selectpicker('refresh');
+                    }
+                    else {
+                        searchButton.attr('disabled', null);
+                        searchButton.selectpicker('refresh');
+                    }
+
+                    if (visibleFilters.length == 1 && visibleFilters.length == emptyFilters.length) {
+                        clearFilterButton.addClass('hidden');
+                    }
+                    else {
+                        clearFilterButton.removeClass('hidden');
+                    }
+                });
+            }
+
+            function hideAllFilters() {
+                hideFilter(serviceTypeFilter);
+                hideFilter(networkOptionsFilter);
+                hideFilter(ageFilter);
+                hideFilter(stateFilter);
+
+                serviceTypeFilter.off();
+                serviceTypeFilter.on('change', allFilterChangeHandler);
+            }
+
+            function showFilter(select) {
+                select.parents('.search-filter-container').removeClass('hidden');
+                select.selectpicker('show');
+                visibleFilters.push(select);
+            }
+
+            /**
+            * @param {jQuery} select
+            */
+            function hideFilter(select) {
+                var visibleFilterIndex = visibleFilters.indexOf(select);
+
+                if (visibleFilterIndex == -1) {
+                    return;
+                }
+
+                select.parents('.search-filter-container').addClass('hidden');
+                select.selectpicker('hide');
+                visibleFilters.splice(visibleFilterIndex, 1);
+
+                if (select[0].id.indexOf('State') > -1) {
+                    select.selectpicker('val', ['All']);
+                }
+                else {
+                    select.selectpicker('val', null);
+                }
+            }
+
+            function clearAllFilters() {
+                hideAllFilters();
+
+                networkFilter.selectpicker('val', null);
+            }
+
+            var stateFilterValue = ['All'];
+
+            function stateFilterChangeHandler(event) {
+                var currentStateFilterValue = stateFilter.selectpicker('val') || [];
+                var valueAlreadyHasAll = stateFilterValue.indexOf('All') > -1;
+                var changeHasAll = currentStateFilterValue.indexOf('All') > -1;
+
+                // if "All" was just selected, remove all other filters
+                if ((!valueAlreadyHasAll && changeHasAll) || !currentStateFilterValue.length) {
+                    stateFilterValue = ['All'];
+                    stateFilter.selectpicker('val', stateFilterValue);
+                    stateFilter.selectpicker('refresh');
+                }
+                // if "All" was already selected, but something else was also selected
+                else if (valueAlreadyHasAll && changeHasAll && currentStateFilterValue.length > 1) {
+                    // remove "All" from the list and re-set the value
+                    stateFilterValue = currentStateFilterValue.filter(function currentStateFilterFn(item) { return item != 'All'; });
+                    stateFilter.selectpicker('val', stateFilterValue);
+                    stateFilter.selectpicker('refresh');
+                }
+                else {
+                    stateFilterValue = currentStateFilterValue;
+                }
+            }
+
+            function showSearchResults() {
+                var canShowResults = true;
+                clearResultTableFilters(true);
+
+                searchResultsTableElement.addClass('hidden');
+                loadingIndicatorContainer.removeClass('hidden');
+                mapElement.addClass('hidden');
+
+                /**
+                 * @param {jQuery} filter
+                 */
+                visibleFilters.forEach(function forEachVisibleFilter(filter) {
+                    var value = filter.selectpicker('val');
+                    var query = '';
+                    var filterName = '';
+                    var columnName = '';
+
+                    if (!value) {
+                        canShowResults = false;
+                    }
+
+                    if (!canShowResults) return;
+
+                    if (typeof value == 'string') {
+                        query = surroundStringWithQuotes(value);
+                    }
+
+                    if (value == 'All' || value[0] == 'All') {
+                        return;
+                    }
+
+                    switch (filter.attr('id')) {
+                        case 'NetworkFilter':
+                            filterName = 'network';
+                            columnName = 'network';
+                            break;
+
+                        case 'ServiceTypeFilter':
+                            filterName = 'serviceType';
+                            columnName = 'servicetype';
+
+                            if (value.toLowerCase() == 'allogenic-related') {
+                                query += ' OR allogenicrelated OR "allogenic related" OR allogeneic-related OR allogeneicrelated OR "allogeneic related"';
+                            }
+                            else if (value.toLowerCase() == 'allogenic-unrelated') {
+                                query += ' OR "allogenic unrelated" OR allogeneic-unrelated OR "allogeneic unrelated"';
+                            }
+                            else if (value.toLowerCase() == 'autologous bmt') {
+                                query += ' OR autologous';
+                            }
+
+                            break;
+
+                        case 'NetworkOptionsFilter':
+                            filterName = 'networkOptions';
+                            columnName = 'networkoptions';
+                            if (value == 'Programs of Excellence' || /^Performance/i.test(value)) {
+                                query = '"Programs of Excellence"';
+                            }
+                            if (value == 'PerformanceSELECT') {
+                                searchResultsFiltering.addFilter('programsOfExcellence', 'PerformanceELITE OR PerformanceSELECT', [ 'performancenetwork' ]);
+                                appliedFilters.push('programsOfExcellence');
+                            }
+                            else if (value == 'PerformanceELITE') {
+                                searchResultsFiltering.addFilter('programsOfExcellence', 'PerformanceElITE', [ 'performancenetwork' ]);
+                                appliedFilters.push('programsOfExcellence');
+                            }
+                            // PerformanceQuality would show any level of programs of excellence
+                            break;
+
+                        case 'AgeFilter':
+                            filterName = 'age';
+                            columnName = 'age';
+                            break;
+
+                        case 'StateFilter':
+                            filterName = 'state';
+                            columnName = 'state';
+                            query = value
+                                .map(function stateMap(state) {
+                                    return surroundStringWithQuotes(state.toLowerCase());
+                                })
+                                .join(' OR ');
+                            break;
+                    }
+
+                    searchResultsFiltering.addFilter(filterName, query, [ columnName ]);
+                    appliedFilters.push(filterName);
+                });
+
+                if (!canShowResults) {
+                    clearResultTableFilters(true);
+                    alert('You must select an option for all filters before searching');
+                    return;
+                }
+
+                searchResultsFiltering.filter();
+
+                setTimeout(function() {
+                    loadingIndicatorContainer.addClass('hidden');
+                    searchResultsTableElement.removeClass('hidden');
+
+                    if (searchResultsTable.rows.array.length) {
+                        mapElement.removeClass('hidden');
+                    }
+
+                    if (!map && !mapElement.hasClass('hidden')) {
+                        map = new google.maps.Map(document.getElementById('google-map'), {
+                            center: {
+                                lat: 37.520045,
+                                lng: -96.2624387,
+                            },
+                            zoom: 4,
+                            fullscreenControl: false,
+                            streetViewControl: false,
+                            mapTypeControl: false,
+                            styles: [
+                                {
+                                    "featureType": "administrative",
+                                    "elementType": "geometry",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative",
+                                    "elementType": "labels.text",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative",
+                                    "elementType": "labels.text.fill",
+                                    "stylers": [
+                                        {
+                                            "color": "#444444"
+                                        },
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.country",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.country",
+                                    "elementType": "geometry.fill",
+                                    "stylers": [
+                                        {
+                                            "color": "#276aa6"
+                                        },
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.country",
+                                    "elementType": "geometry.stroke",
+                                    "stylers": [
+                                        {
+                                            "visibility": "on"
+                                        },
+                                        {
+                                            "color": "#ffffff"
+                                        },
+                                        {
+                                            "weight": "2.54"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.country",
+                                    "elementType": "labels",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.province",
+                                    "elementType": "geometry.fill",
+                                    "stylers": [
+                                        {
+                                            "visibility": "on"
+                                        },
+                                        {
+                                            "weight": "10.00"
+                                        },
+                                        {
+                                            "color": "#ac3232"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.province",
+                                    "elementType": "geometry.stroke",
+                                    "stylers": [
+                                        {
+                                            "visibility": "on"
+                                        },
+                                        {
+                                            "color": "#ffffff"
+                                        },
+                                        {
+                                            "weight": "1.72"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.province",
+                                    "elementType": "labels",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.locality",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.neighborhood",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.neighborhood",
+                                    "elementType": "geometry.stroke",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.land_parcel",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "administrative.land_parcel",
+                                    "elementType": "labels",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "landscape",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "color": "#276aa6"
+                                        },
+                                        {
+                                            "visibility": "on"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "poi",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "road",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "saturation": -100
+                                        },
+                                        {
+                                            "lightness": "36"
+                                        },
+                                        {
+                                            "color": "#276aa6"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "road.highway",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "visibility": "simplified"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "road.arterial",
+                                    "elementType": "labels.icon",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "transit",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "water",
+                                    "elementType": "all",
+                                    "stylers": [
+                                        {
+                                            "color": "#46bcec"
+                                        },
+                                        {
+                                            "visibility": "on"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "water",
+                                    "elementType": "geometry.fill",
+                                    "stylers": [
+                                        {
+                                            "color": "#f1f1f1"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "featureType": "water",
+                                    "elementType": "labels.text",
+                                    "stylers": [
+                                        {
+                                            "visibility": "off"
+                                        }
+                                    ]
+                                }
+                            ],
+                        });
+
+                        markers.forEach(function forEachMarker(marker) {
+                            marker.setMap(map);
+                        });
+                    }
+                }, 500);
+            }
+
+            function clearResultTableFilters(skipApplyingNoFilter) {
+                appliedFilters.forEach(function appliedFilterForEach(filterName) {
+                    searchResultsFiltering.removeFilter(filterName);
+                });
+
+                if (!skipApplyingNoFilter) {
+                    searchResultsTableElement.addClass('hidden');
+                    searchResultsFiltering.filter();
+                }
+
+                visibleRowData = [];
+
+                appliedFilters = [];
+            }
+
+            function surroundStringWithQuotes(str) {
+                if (str.indexOf(' ') > -1) {
+                    return '"' + str + '"';
+                }
+
+                return str;
+            }
+
+            function populateLocationMap() {
+                var locations = [];
+                searchResultsTable.rows.all.forEach(function allTableRowsFilterForLocation(row, index) {
+                    if (!row.value.city || !row.value.state) return;
+
+                    var locationString = getLocationString(row.value);
+                    var locationIndex = locations.indexOf(locationString);
+
+                    // if it's already being earched for, don't search for it again
+                    if (locationIndex > -1) return;
+
+                    // add it to locations that have been/will be searched for
+                    locations.push(locationString);
+
+                    setTimeout(function() {
+                        var xhr = new XMLHttpRequest();
+
+                        xhr.onload = function onLoad() {
+                            var responseObj = JSON.parse(xhr.responseText);
+                            if (responseObj.status == 'OK' && responseObj.results && responseObj.results.length) {
+                                locationCoordsMap[locationString] = responseObj.results[0].geometry.location;
+                            }
+                        };
+                        xhr.onerror = function onError(error) {
+                            console.error(error);
+                        };
+
+                        xhr.open(
+                            'GET',
+                            'https://maps.googleapis.com/maps/api/geocode/json?' + $.param({
+                                address: locationString,
+                                components: 'country:US',
+                                key: googleApiKey,
+                            })
+                        );
+
+                        xhr.send();
+                    }, Math.floor(index / 10));
+                });
+            }
+
+            function getLocationString(data) {
+                return data.city + ', ' + data.state;
+            }
+        });
+
+        var googleMapOverlayPrototypeBase = {
+            onAdd: function onAdd() {
+                this.getPanes().floatPane.appendChild(this.containerDiv);
+            },
+            onRemove: function onRemove() {
+                if (this.containerDiv.parentElement) {
+                    this.containerDiv.parentElement.removeChild(this.containerDiv);
+                }
+
+                this.clearListeners();
+            },
+            draw: function draw() {
+                var divPosition = this.getProjection().fromLatLngToDivPixel(this.position);
+
+                var display = Math.abs(divPosition.x) < 4000 && Math.abs(divPosition.y) < 4000 ? 'block' : 'none';
+
+                if (display == 'block') {
+                    this.containerDiv.style.left = divPosition.x + 'px';
+                    this.containerDiv.style.top = divPosition.y + 'px';
+                }
+                if (this.containerDiv.style.display != display) {
+                    this.containerDiv.style.display = display;
+                }
+            },
+            /** This adds a listener to the containing element */
+            addListener: function addListener(eventType, listener) {
+                if (!this.listners) {
+                    this.listeners = {};
+                }
+
+                if (!(eventType in this.listeners)) {
+                    this.listeners[eventType] = [];
+                }
+
+                this.listeners[eventType].push(listener);
+
+                this.containerDiv.addEventListener(eventType, listener);
+
+                return {
+                    remove: this.removeListener.bind(this, eventType, listener),
+                };
+            },
+            /** This removes a listener from the containing element */
+            removeListener: function removeListener(eventType, listener) {
+                if (!this.listeners || !(eventType in this.listeners)) return;
+                var listenerIndex = this.listeners[eventType].indexOf(listener);
+
+                if (listenerIndex > -1) {
+                    this.containerDiv.removeEventListener(eventType, listener);
+                    this.listeners[eventType].splice(listenerIndex, 1);
+                }
+            },
+            /** This removes all listeners from the containing element */
+            clearListeners: function clearListeners() {
+                $(this.containerDiv).find('.popup-bubble').off();
+
+                if (!this.listeners) return;
+
+                Object.keys(this.listeners).forEach(function removeEachListenerFromEventTypes(eventType) {
+                    this.listeners[eventType].forEach(this.removeListener.bind(this, eventType));
+
+                    this.listeners[eventType] = [];
+                }.bind(this));
+            },
+            hide: function hidePopup() {
+                this.setMap(null);
+
+                $(this.containerDiv).find('.popup-bubble').off();
+            },
+        };
+
+        /**
+         * @param {string} locationString
+         * @param {any[]} locationFacilities
+         * @param {LatLng} position
+         */
+        function createFacilityMapPopup(locationString, locationFacilities, position) {
+            var proto = Object.create(google.maps.OverlayView.prototype);
+            Object.assign(proto, googleMapOverlayPrototypeBase);
+
+            var popup = Object.create(proto);
+
+            var containerDiv = document.createElement('div');
+            containerDiv.classList.add('popup-container');
+            containerDiv.classList.add('facility-list');
+
+            var popupAnchorDiv = document.createElement('div');
+            popupAnchorDiv.classList.add('popup-bubble-anchor');
+
+            containerDiv.appendChild(popupAnchorDiv);
+
+            var popupDiv = document.createElement('div');
+            popupDiv.classList.add('popup-bubble');
+
+            popupAnchorDiv.appendChild(popupDiv);
+
+            var facilityListString = locationFacilities
+                .reduce(function reduceFacilitiesToListItems(resultString, facility) {
+                    return resultString + '<li>' +
+                        '<div class="bullet"></div>' +
+                        '<div>' +
+                            '<div class="popup-paragraph popup-facility-name">' + facility.facilityname + '</div>' +
+                            '<div class="popup-paragraph popup-facility-network">' + facility.network + '</div>' + (
+                                facility.servicetype ?
+                                    '<div class="popup-paragraph popup-facility-service-type">' + facility.servicetype + '</div>' :
+                                    ''
+                            ) +
+                        '</div>' +
+                    '</li>';
+                }, '');
+
+            popupDiv.innerHTML = '<div class="facility-popup-heading">' + locationString + '</div>' +
+                '<ul>' + facilityListString + '</ul>';
+
+            popup.containerDiv = containerDiv;
+
+            popup.position = new google.maps.LatLng(position.lat, position.lng);
+
+            return popup;
+        }
+    }
+
+    function onMapsLibraryLoaded() {
+        mapsLoaded = true;
+
+        prepareFilters();
+    }</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDuLe4Sq9vTpTxUJ-Vati-KYu-26m3XW0M&callback=onMapsLibraryLoaded" async defer></script>
+
+<span id="IsLoggedIn" style="display: none">[php_everywhere]</span>

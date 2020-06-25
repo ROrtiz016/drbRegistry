@@ -1,5 +1,6 @@
+
 .field-container{
-    width: 320px;
+    width: 800px;
     margin: auto;
     text-align: left;
     display: flex;
@@ -14,5 +15,36 @@
 .input-title{
     display: flex;
     justify-content: space-between;
-    width: 200px;
+    width: 300px;
+
+}
+
+.country_span{
+    color: red !important;
+    float: none;
+}
+
+.form-control{
+    height: 25px;
+    width: 180px;
+    margin-top: 10px;
+}
+
+.children-table{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.field-container2{
+    width: 800px;
+    margin: auto;
+    text-align: left;
+    /* display: flex; */
+    justify-content: space-between;
+}
+
+.textarea-field{
+    width: 250px;
+    min-height: 50px;
 }
