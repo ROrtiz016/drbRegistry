@@ -4,6 +4,8 @@ import './IntakeSheet.css'
 import ChildrenList from "./ChildrenList"
 import NewChildren from './NewChildren'
 import PlaceOfBirth from './PlaceOfBirth/PlaceOfBirth'
+import DateOfEntry from './DateOfEntry/DateOfEntry'
+import EntryList from './DateOfEntry/EntryList'
 
 class IntakeSheet extends Component {
     constructor() {
@@ -64,9 +66,9 @@ class IntakeSheet extends Component {
             liedToBeCitizen: "No",
             otherNames: "No",
             visitReason: "",
-
             childrenList: [],
-            childId: 0
+            datesOfEntry: []
+
         }
 
         this.change = this.change.bind(this)
@@ -74,20 +76,35 @@ class IntakeSheet extends Component {
         this.handleAddChildrenTask = this.handleAddChildrenTask.bind(this)
         this.handlePlaceOfBirth = this.handlePlaceOfBirth.bind(this)
         this.handlePlaceOfBirthSpouse = this.handlePlaceOfBirthSpouse.bind(this)
+        this.handleDateOfEntry = this.handleDateOfEntry.bind(this)
+    }
+
+    handleDateOfEntry(date) {
+        if (date === "") {
+            alert("Please add a date of entry")
+            return
+        }
+        this.setState({
+            datesOfEntry: [...this.state.datesOfEntry, { entryDate: date }]
+        })
     }
 
     handleAddChildrenTask(childName, childDateofBirth) {
-        this.setState({ childrenList: [...this.state.childrenList, {name: childName, dateOfBirth: childDateofBirth}] });
+        if (childName === "") {
+            alert("Please add the child's name")
+            return
+        }
+        this.setState({ childrenList: [...this.state.childrenList, { name: childName, dateOfBirth: childDateofBirth }] });
     }
 
-    handlePlaceOfBirth(place){
+    handlePlaceOfBirth(place) {
         var placeValue = place
-        this.setState({placeOfBirth: placeValue})
+        this.setState({ placeOfBirth: placeValue })
     }
 
-    handlePlaceOfBirthSpouse(place){
+    handlePlaceOfBirthSpouse(place) {
         var placeValue = place
-        this.setState({placeOfBirthSpouse: placeValue})
+        this.setState({ placeOfBirthSpouse: placeValue })
     }
 
 
@@ -209,7 +226,7 @@ class IntakeSheet extends Component {
                             </td>
                         </tr>
 
-                        <PlaceOfBirth place={this.handlePlaceOfBirth}/>
+                        <PlaceOfBirth place={this.handlePlaceOfBirth} />
 
                         <tr className="table-row">
                             <th>Address:</th>
@@ -360,7 +377,7 @@ class IntakeSheet extends Component {
                         </tr>
 
                         <tr className="table-row gray">
-                            <th>Family Information / Informacion de la Familia</th>
+                            <th className="center">Family Information / Informacion de la Familia</th>
                         </tr>
 
                         <tr className="table-row">
@@ -376,7 +393,9 @@ class IntakeSheet extends Component {
                             </td>
                         </tr>
 
-                        <tr className="table-row gray">
+                        <PlaceOfBirth place={this.handlePlaceOfBirthSpouse} />
+
+                        <tr className="table-row ">
                             <th>Date of Birth:</th>
                             <td>
                                 <input
@@ -388,8 +407,6 @@ class IntakeSheet extends Component {
                                     onChange={e => this.change(e)} />
                             </td>
                         </tr>
-
-                        <PlaceOfBirth place={this.handlePlaceOfBirthSpouse}/>
 
                         <tr className="table-row gray">
                             <th>Legal Status:</th>
@@ -502,21 +519,19 @@ class IntakeSheet extends Component {
                         </tr>
 
                         <tr className="table-row">
-                            <th>Additional Information / Informacion Adicional</th>
+                            <th className="center">Additional Information / Informacion Adicional</th>
                         </tr>
 
                         <tr className="table-row gray">
                             <th>Dates of Entries to the US/Fechas de entradas a EU:</th>
                         </tr>
-                        {/* NEED TO FIGURE OUT LOGIC FOR THIS SECTION */}
+
                         <tr className="table-row gray">
-                            <td>
-                                <ol>
-                                    <li></li>
-                                    <li></li>
-                                    <li></li>
-                                </ol>
-                            </td>
+                            <DateOfEntry date={this.handleDateOfEntry} />
+                        </tr>
+
+                        <tr className="table-row gray">
+                            <EntryList dates={this.state.datesOfEntry} />
                         </tr>
 
                         <tr className="table-row">
